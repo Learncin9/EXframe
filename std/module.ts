@@ -1,0 +1,10 @@
+import { RestModuleType, Req, Res } from "./../types/rest-module";
+
+const e: RestModuleType = {
+    action: (req: Req, res: Res) => {
+        //do something
+    },
+    method: "GET",
+};
+
+export default e;
