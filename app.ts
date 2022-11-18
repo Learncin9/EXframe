@@ -23,9 +23,9 @@ class FileList {
 import {
     RestModuleType,
     DynamicImportingRestModuleType,
-    CheckMethod,
 } from "./types/rest-module";
 import { manifest } from "./src/manifest";
+import { createImportSpecifier } from "typescript";
 
 const app: Express = express();
 
@@ -58,28 +58,30 @@ const GetRestLink = (text: string): string => {
     //There can`t be any file without .js in src/module/ (if you`re using typescript, you ts and compile it by tsc)
 };
 const RestModule = (module: RestModuleType, restLink: string) => {
-    CheckMethod(module.method);
-    switch (module.method) {
-        case "GET":
-            app.get(restLink, module.action);
-            break;
-        case "POST":
-            app.post(restLink, module.action);
-            break;
-        case "PUT":
-            app.put(restLink, module.action);
-            break;
-        case "PATCH":
-            app.patch(restLink, module.action);
-            break;
-        case "DELETE":
-            app.delete(restLink, module.action);
-            break;
-        default:
-            break;
+    if (module.get !== null) {
+        app.get(restLink, module.get);
+        console.log(`EXframe: '${restLink}'(get) was rested as GET`);
     }
 
-    console.log(`EXframe : '${restLink}' was rested as ${module.method}`);
+    if (module.post !== null) {
+        app.post(restLink, module.post);
+        console.log(`EXframe: '${restLink}'(post) was rested as POST`);
+    }
+
+    if (module.put !== null) {
+        app.get(restLink, module.put);
+        console.log(`EXframe: '${restLink}'(put) was rested as PUT`);
+    }
+
+    if (module.patch !== null) {
+        app.get(restLink, module.patch);
+        console.log(`EXframe: '${restLink}'(patch) was rested as PATCH`);
+    }
+
+    if (module.delete !== null) {
+        app.get(restLink, module.delete);
+        console.log(`EXframe: '${restLink}'(delete) was rested as DELETE`);
+    }
 };
 moduleFileList.Get().map((item) => {
     if (GetFileExtension(item) === ".js") {
@@ -117,6 +119,6 @@ if (manifest.static === null) {
 //open server
 setTimeout(() => {
     app.listen(manifest.port, () => {
-        console.log("\x1b[42m%s", `EXframe: port opened by ${manifest.port}`);
+        console.log(`EXframe: port opened by ${manifest.port}`);
     });
 }, 2000);

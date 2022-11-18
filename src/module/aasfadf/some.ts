@@ -1,10 +1,13 @@
 import { RestModuleType, Req, Res } from "./../../../types/rest-module";
 
 const e: RestModuleType = {
-    action: (req: Req, res: Res) => {
+    get: (req: Req, res: Res) => {
         res.send("Hello, World!");
     },
-    method: "GET",
+    post: null,
+    put: null,
+    patch: null,
+    delete: null,
 };
 
 export default e;
