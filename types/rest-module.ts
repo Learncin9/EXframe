@@ -1,4 +1,6 @@
 import { Response, Request, NextFunction } from "express";
+import Log from "./../src/log";
+
 type ResponseFunction = (
     req: Request,
     res: Response,
@@ -29,10 +31,9 @@ function MethodCheck(method: string) {
         method !== "delete" &&
         method !== "all"
     ) {
-        console.log(
+        Log.log(
             "EXframe: all method should be 'get', 'post', 'put', 'patch', 'delete', 'all'"
         );
-        process.exit();
     }
 }
 
