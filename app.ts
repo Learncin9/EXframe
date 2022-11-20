@@ -21,7 +21,8 @@ const app: Express = express();
 
 //start setting global middleware (preload)
 //#region
-globalMiddleware.preload.map((item) => {
+globalMiddleware.preload.map((item, index) => {
+    console.log(`EXframe: global middleware(${index}) was seted! (preload)`);
     app.use(item);
 });
 //#endregion
@@ -117,7 +118,8 @@ if (manifest.static === null) {
 
 //start setting global middleware (preload)
 //#region
-globalMiddleware.postload.map((item) => {
+globalMiddleware.postload.map((item, index) => {
+    console.log(`EXframe: global middleware(${index}) was seted! (postload)`);
     app.use(item);
 });
 //#endregion
@@ -125,11 +127,17 @@ globalMiddleware.postload.map((item) => {
 //start setting error middleware
 //#region
 if (errorMiddleware.err404 !== null) {
+    console.log(`EXframe: 404 error middleware was seted!`);
     app.use(errorMiddleware.err404);
+} else {
+    console.log(`EXframe: 404 error middleware wasnt seted!`);
 }
 
 if (errorMiddleware.others !== null) {
+    console.log(`EXframe: other error middleware was seted!`);
     app.use(errorMiddleware.others);
+} else {
+    console.log(`EXframe: other error middleware wasnt seted!`);
 }
 //#endregion
 
