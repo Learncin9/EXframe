@@ -1,34 +1,33 @@
+//#region import
 import { Express } from "express";
 import express from "express";
 
-import * as FileStream from "fs";
-class FileList {
-    #files = new Array(0);
-    Build(path: string) {
-        FileStream.readdirSync(path, {
-            withFileTypes: true,
-        }).forEach((file) => {
-            if (file.isDirectory()) {
-                this.Build(path + file.name + "/");
-            } else {
-                this.#files.push(path + file.name);
-            }
-        });
-    }
-    Get(): string[] {
-        return this.#files;
-    }
-}
+import GetFileExtension from "./lib/file-extensiob";
+import GetRestLink from "./lib/rest-link";
+import FileList from "./lib/file-list";
+
+import globalMiddleware from "./src/middleware/global";
+import errorMiddleware from "./src/middleware/error";
 
 import {
-    RestModuleType,
     DynamicImportingRestModuleType,
     MethodCheck,
     ResponseFunction,
 } from "./types/rest-module";
 import { manifest } from "./src/manifest";
+//#endregion
 
 const app: Express = express();
+
+//start setting global middleware (preload)
+//#region
+globalMiddleware.preload.map((item) => {
+    app.use(item);
+});
+//#endregion
+
+//start serving src/module --> serve restApi
+//#region
 
 //read module as set app.get or ...
 const moduleLink = process.cwd() + "/src/module/";
@@ -36,28 +35,6 @@ const moduleLink = process.cwd() + "/src/module/";
 const moduleFileList = new FileList();
 moduleFileList.Build(moduleLink);
 
-const GetFileExtension = (text: string) => {
-    const reverse = (str: string): string => {
-        let reverse = str.split("");
-
-        reverse = reverse.reverse();
-
-        return reverse.join("");
-    };
-    let str = "";
-    for (let i = text.length - 1; i >= 0; i--) {
-        str += text[i];
-        if (text[i] === ".") {
-            break;
-        }
-    }
-
-    return reverse(str);
-};
-const GetRestLink = (text: string): string => {
-    return "/" + text.replace(moduleLink, "").replace(".js", "");
-    //There can`t be any file without .js in src/module/ (if you`re using typescript, you ts and compile it by tsc)
-};
 const FixRest = (
     action: ResponseFunction,
     method: string,
@@ -91,7 +68,7 @@ moduleFileList.Get().map((item) => {
         //ts is translated by tsc, so as a result, it will read .js
         import(item).then((data: DynamicImportingRestModuleType) => {
             const module = data.default;
-            const restLink = GetRestLink(item);
+            const restLink = GetRestLink(item, moduleLink);
 
             //set pre middleware
             module.premid.map((item) => {
@@ -121,6 +98,8 @@ moduleFileList.Get().map((item) => {
     }
 });
 
+//#endregion
+
 //start serving static contents
 //#region
 if (manifest.static === null) {
@@ -133,6 +112,24 @@ if (manifest.static === null) {
             `EXframe: 'src/static/${item.dir}' was served as static content at '/${item.rest}'`
         );
     });
+}
+//#endregion
+
+//start setting global middleware (preload)
+//#region
+globalMiddleware.postload.map((item) => {
+    app.use(item);
+});
+//#endregion
+
+//start setting error middleware
+//#region
+if (errorMiddleware.err404 !== null) {
+    app.use(errorMiddleware.err404);
+}
+
+if (errorMiddleware.others !== null) {
+    app.use(errorMiddleware.others);
 }
 //#endregion
 
